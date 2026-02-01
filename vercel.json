@@ -11,10 +11,5 @@
             "src": "/(.*)",
             "dest": "server.js"
         }
-    ],
-    "env": {
-        "GOOGLE_CLIENT_ID": "@google_client_id",
-        "GOOGLE_CLIENT_SECRET": "@google_client_secret",
-        "PORT": "3000"
-    }
+    ]
 }
