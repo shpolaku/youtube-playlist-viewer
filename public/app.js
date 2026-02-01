@@ -247,12 +247,12 @@ function displayVideos(container, videoItems) {
         channelName.className = 'track-artist';
         channelName.textContent = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle;
 
-        trackInfo.appendChild(videoTitle);
-        trackInfo.appendChild(channelName);
+        videoInfo.appendChild(videoTitle);
+        videoInfo.appendChild(channelName);
 
-        trackElement.appendChild(videoNumber);
-        trackElement.appendChild(trackInfo);
-        tracksList.appendChild(trackElement);
+        li.appendChild(videoNumber);
+        li.appendChild(videoInfo);
+        videosList.appendChild(li);
     });
 
     container.appendChild(tracksList);
