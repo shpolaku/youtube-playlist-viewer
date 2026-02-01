@@ -1,0 +1,23 @@
+{
+    "name": "youtube-playlist-viewer",
+    "version": "1.0.0",
+    "description": "A simple web application to view YouTube playlists",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "keywords": [
+        "youtube",
+        "playlists",
+        "oauth",
+        "google"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.2",
+        "axios": "^1.6.5",
+        "dotenv": "^16.3.1"
+    }
+}

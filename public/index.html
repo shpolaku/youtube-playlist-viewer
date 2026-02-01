@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Playlist Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>📺 YouTube Playlist Viewer</h1>
+            <p class="subtitle">View your YouTube playlists and videos</p>
+        </header>
+
+        <!-- Login Section -->
+        <div id="login-section" class="section">
+            <button id="login-btn" class="btn-primary">Login with Google</button>
+        </div>
+
+        <!-- Loading Section -->
+        <div id="loading-section" class="section hidden">
+            <div class="loader"></div>
+            <p>Loading your playlists...</p>
+        </div>
+
+        <!-- Error Section -->
+        <div id="error-section" class="section hidden">
+            <p class="error-message" id="error-message"></p>
+            <button id="retry-btn" class="btn-secondary">Try Again</button>
+        </div>
+
+        <!-- Playlists Section -->
+        <div id="playlists-section" class="section hidden">
+            <div class="user-info">
+                <h2>Your Playlists</h2>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </div>
+            <div id="playlists-container"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
