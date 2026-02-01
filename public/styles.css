@@ -314,3 +314,172 @@ h1 {
     font-size: 1.5rem;
   }
 }
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, var(--youtube-dark-gray) 0%, var(--youtube-gray) 100%);
+  padding: 30px;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-content h2 {
+  color: var(--youtube-red);
+  margin-bottom: 10px;
+  font-size: 1.8rem;
+}
+
+.modal-subtitle {
+  color: var(--youtube-light-gray);
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  color: var(--youtube-white);
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--youtube-white);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--youtube-red);
+}
+
+.input-field::placeholder {
+  color: var(--youtube-light-gray);
+}
+
+textarea.input-field {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+.modal-actions .btn-primary,
+.modal-actions .btn-secondary {
+  padding: 10px 24px;
+  font-size: 0.9rem;
+}
+
+/* Conversion button in playlist card */
+.convert-btn {
+  background: linear-gradient(45deg, #FF0000, #CC0000);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.convert-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+}
+
+.convert-btn:active {
+  transform: translateY(0);
+}
+
+.convert-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Conversion status */
+#conversion-status {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+#conversion-status.success {
+  background-color: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  color: #4caf50;
+}
+
+#conversion-status.error {
+  background-color: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.5);
+  color: #f44336;
+}
+
+#conversion-status.progress {
+  background-color: rgba(255, 152, 0, 0.2);
+  border: 1px solid rgba(255, 152, 0, 0.5);
+  color: #ff9800;
+}
+
+#conversion-status a {
+  color: var(--youtube-red);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+#conversion-status a:hover {
+  text-decoration: underline;
+}

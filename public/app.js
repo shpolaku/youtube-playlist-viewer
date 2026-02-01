@@ -157,11 +157,21 @@ function createPlaylistCard(playlist) {
     header.appendChild(info);
     header.appendChild(arrow);
 
+    // Add convert button
+    const convertBtn = document.createElement('button');
+    convertBtn.className = 'convert-btn';
+    convertBtn.innerHTML = '🎵 Create in YouTube Music';
+    convertBtn.onclick = (e) => {
+        e.stopPropagation(); // Prevent triggering playlist expansion
+        showConversionModal(playlist.id, playlist.snippet.title);
+    };
+
     const videosContainer = document.createElement('div');
     videosContainer.className = 'tracks-container hidden';
     videosContainer.id = `videos-${playlist.id}`;
 
     card.appendChild(header);
+    card.appendChild(convertBtn);
     card.appendChild(videosContainer);
 
     return card;
@@ -237,13 +247,167 @@ function displayVideos(container, videoItems) {
         channelName.className = 'track-artist';
         channelName.textContent = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle;
 
-        videoInfo.appendChild(videoTitle);
-        videoInfo.appendChild(channelName);
+        trackInfo.appendChild(videoTitle);
+        trackInfo.appendChild(channelName);
 
-        li.appendChild(videoNumber);
-        li.appendChild(videoInfo);
-        videosList.appendChild(li);
+        trackElement.appendChild(videoNumber);
+        trackElement.appendChild(trackInfo);
+        tracksList.appendChild(trackElement);
     });
 
-    container.appendChild(videosList);
+    container.appendChild(tracksList);
+}
+
+// YouTube Music Conversion Functionality
+let currentPlaylistForConversion = null;
+
+// DOM Elements for modal
+const convertModal = document.getElementById('convert-modal');
+const playlistNameInput = document.getElementById('playlist-name');
+const playlistDescriptionInput = document.getElementById('playlist-description');
+const cancelConvertBtn = document.getElementById('cancel-convert');
+const confirmConvertBtn = document.getElementById('confirm-convert');
+const conversionStatus = document.getElementById('conversion-status');
+
+// Event listeners for modal
+cancelConvertBtn.addEventListener('click', closeConversionModal);
+confirmConvertBtn.addEventListener('click', confirmConversion);
+
+// Close modal when clicking outside
+convertModal.addEventListener('click', (e) => {
+    if (e.target === convertModal) {
+        closeConversionModal();
+    }
+});
+
+function showConversionModal(playlistId, playlistTitle) {
+    currentPlaylistForConversion = playlistId;
+    playlistNameInput.value = `${playlistTitle} (Music)`;
+    playlistDescriptionInput.value = '';
+    conversionStatus.innerHTML = '';
+    conversionStatus.classList.add('hidden');
+    convertModal.classList.remove('hidden');
+    playlistNameInput.focus();
+}
+
+function closeConversionModal() {
+    convertModal.classList.add('hidden');
+    currentPlaylistForConversion = null;
+    playlistNameInput.value = '';
+    playlistDescriptionInput.value = '';
+    conversionStatus.innerHTML = '';
+    conversionStatus.classList.add('hidden');
+}
+
+async function confirmConversion() {
+    const name = playlistNameInput.value.trim();
+    const description = playlistDescriptionInput.value.trim();
+
+    if (!name) {
+        alert('Please enter a playlist name');
+        return;
+    }
+
+    if (!currentPlaylistForConversion) {
+        alert('No playlist selected');
+        return;
+    }
+
+    // Disable buttons during conversion
+    confirmConvertBtn.disabled = true;
+    cancelConvertBtn.disabled = true;
+
+    try {
+        // Show progress
+        conversionStatus.classList.remove('hidden', 'success', 'error');
+        conversionStatus.classList.add('progress');
+        conversionStatus.innerHTML = 'Creating playlist...';
+
+        // Step 1: Get all video IDs from the playlist
+        const videosData = await fetchYouTubeAPI('/playlistItems', {
+            part: 'snippet',
+            playlistId: currentPlaylistForConversion,
+            maxResults: 50
+        });
+
+        const videoIds = videosData.items
+            .map(item => item.snippet.resourceId.videoId)
+            .filter(id => id); // Filter out any null/undefined
+
+        if (videoIds.length === 0) {
+            throw new Error('No videos found in this playlist');
+        }
+
+        // Step 2: Create new playlist
+        conversionStatus.innerHTML = `Creating playlist "${name}"...`;
+
+        const createResponse = await fetch('/api/create-playlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                accessToken: accessToken,
+                name: name,
+                description: description
+            })
+        });
+
+        if (!createResponse.ok) {
+            throw new Error('Failed to create playlist');
+        }
+
+        const createData = await createResponse.json();
+        const newPlaylistId = createData.playlistId;
+        const playlistUrl = createData.url;
+
+        // Step 3: Add videos to playlist
+        conversionStatus.innerHTML = `Adding ${videoIds.length} videos to playlist...`;
+
+        const addResponse = await fetch('/api/add-to-playlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                accessToken: accessToken,
+                playlistId: newPlaylistId,
+                videoIds: videoIds
+            })
+        });
+
+        if (!addResponse.ok) {
+            throw new Error('Failed to add videos to playlist');
+        }
+
+        const addData = await addResponse.json();
+
+        // Show success message
+        conversionStatus.classList.remove('progress');
+        conversionStatus.classList.add('success');
+
+        let successMessage = `✅ Successfully created playlist with ${addData.added} video${addData.added !== 1 ? 's' : ''}!<br>`;
+        successMessage += `<a href="${playlistUrl}" target="_blank">Open in YouTube Music →</a>`;
+
+        if (addData.failed.length > 0) {
+            successMessage += `<br><br>⚠️ ${addData.failed.length} video${addData.failed.length !== 1 ? 's' : ''} could not be added (may be deleted or private)`;
+        }
+
+        conversionStatus.innerHTML = successMessage;
+
+        // Re-enable cancel button to close
+        cancelConvertBtn.disabled = false;
+        confirmConvertBtn.disabled = false;
+
+    } catch (error) {
+        console.error('Conversion error:', error);
+
+        conversionStatus.classList.remove('progress');
+        conversionStatus.classList.add('error');
+        conversionStatus.innerHTML = `❌ Error: ${error.message}`;
+
+        // Re-enable buttons
+        confirmConvertBtn.disabled = false;
+        cancelConvertBtn.disabled = false;
+    }
 }

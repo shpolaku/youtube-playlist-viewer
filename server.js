@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/callback`;
-const SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
+const SCOPE = 'https://www.googleapis.com/auth/youtube';
 
 // Serve static files from 'public' directory
 app.use(express.static('public'));
@@ -68,6 +68,97 @@ app.get('/callback', async (req, res) => {
         console.error('Error exchanging code for token:', error.response?.data || error.message);
         res.redirect('/?error=auth_failed');
     }
+});
+
+// Body parser for JSON
+app.use(express.json());
+
+// API endpoint to create a new playlist
+app.post('/api/create-playlist', async (req, res) => {
+    const { accessToken, name, description } = req.body;
+
+    if (!accessToken || !name) {
+        return res.status(400).json({ error: 'Missing required fields: accessToken and name' });
+    }
+
+    try {
+        const response = await axios.post(
+            'https://www.googleapis.com/youtube/v3/playlists',
+            {
+                snippet: {
+                    title: name,
+                    description: description || ''
+                },
+                status: {
+                    privacyStatus: 'private'
+                }
+            },
+            {
+                params: {
+                    part: 'snippet,status',
+                    access_token: accessToken
+                },
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const playlistId = response.data.id;
+        res.json({
+            playlistId,
+            url: `https://music.youtube.com/playlist?list=${playlistId}`
+        });
+    } catch (error) {
+        console.error('Error creating playlist:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Failed to create playlist' });
+    }
+});
+
+// API endpoint to add videos to a playlist
+app.post('/api/add-to-playlist', async (req, res) => {
+    const { accessToken, playlistId, videoIds } = req.body;
+
+    if (!accessToken || !playlistId || !videoIds || !Array.isArray(videoIds)) {
+        return res.status(400).json({ error: 'Missing required fields: accessToken, playlistId, and videoIds array' });
+    }
+
+    const results = {
+        added: 0,
+        failed: []
+    };
+
+    for (const videoId of videoIds) {
+        try {
+            await axios.post(
+                'https://www.googleapis.com/youtube/v3/playlistItems',
+                {
+                    snippet: {
+                        playlistId: playlistId,
+                        resourceId: {
+                            kind: 'youtube#video',
+                            videoId: videoId
+                        }
+                    }
+                },
+                {
+                    params: {
+                        part: 'snippet',
+                        access_token: accessToken
+                    },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            results.added++;
+        } catch (error) {
+            console.error(`Failed to add video ${videoId}:`, error.response?.data || error.message);
+            results.failed.push({ videoId, error: error.response?.data?.error?.message || 'Unknown error' });
+        }
+    }
+
+    res.json(results);
 });
 
 // Start server
