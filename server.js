@@ -15,6 +15,12 @@ const SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 // Serve static files from 'public' directory
 app.use(express.static('public'));
 
+// Explicit root route to serve index.html (needed for Vercel)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
 // Login endpoint - initiates Google authorization
 app.get('/login', (req, res) => {
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
